@@ -29,22 +29,12 @@ jobs:
       fail-fast: false
       matrix:
         php:
-          - "7.4"
-          - "8.0"
           - "8.4"
           - "8.5"
           - "8.6"
         postgresql:
           - "17"
         include:
-          # the patch release only picks the container image: composer.lock pins
-          # config.platform.php to 7.4.2, so that is still what dependencies resolve
-          # against. 7.4.2's image is Alpine 3.11, too old for the Node the checkout
-          # action now ships, which fails the job before any of the project runs.
-          - php: "7.4"
-            php-version: "7.4.33"
-          - php: "8.0"
-            php-version: "8.0.30"
           - php: "8.4"
             php-version: "8.4"
           - php: "8.5"
@@ -87,19 +77,18 @@ jobs:
         uses: "ramsey/composer-install@v2"
 
       - name: "Validate composer dependencies"
-        run: "composer validate"
+        run: "composer validate --strict"
 
       - name: "Run composer audit"
         run: "composer audit --no-dev --locked"
 
-      # the locked php-cs-fixer (3.9) and PHPStan (1.8) cannot run on PHP 8.2+, and static
-      # analysis does not depend on the runtime version: run them on the lowest one only
+      # php-cs-fixer 3.95 does not support PHP 8.6 syntax yet, and the coding style does not
+      # depend on the runtime version: check it on the lowest supported one only
       - name: "Check code style"
-        if: "${{ matrix.php == '7.4' }}"
+        if: "${{ matrix.php == '8.4' }}"
         run: "composer check-cs"
 
       - name: "Run PHPStan"
-        if: "${{ matrix.php == '7.4' }}"
         run: "composer phpstan"
 
       - name: "Lint twig"
