@@ -61,6 +61,11 @@ jobs:
       - name: "Adjust allowed PHP memory"
         run: echo 'memory_limit = -1' > $PHP_INI_DIR/conf.d/memory-limit.ini;
 
+      # the pinned Composer 2.6.6 prints PHP 8.5+ deprecations on stdout, which corrupts the
+      # output of `composer config` that ramsey/composer-install writes to $GITHUB_OUTPUT
+      - name: "Hide deprecations raised by the CI tooling"
+        run: echo 'error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT' > $PHP_INI_DIR/conf.d/error-reporting.ini
+
       - name: "Install PHP extensions"
         shell: bash
         run: |
