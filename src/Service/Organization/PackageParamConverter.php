@@ -27,6 +27,9 @@ final class PackageParamConverter implements ArgumentValueResolverInterface
         return $argument->getType() === Package::class;
     }
 
+    /**
+     * @return iterable<object>
+     */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         if (null === $id = $request->attributes->get('package')) {

@@ -26,6 +26,9 @@ final class UserParamConverter implements ArgumentValueResolverInterface
         return $argument->getType() === User::class;
     }
 
+    /**
+     * @return iterable<object>
+     */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         if (null === $id = $request->attributes->get('user')) {

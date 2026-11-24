@@ -36,11 +36,17 @@ final class Organization implements UserInterface
         return ['ROLE_ORGANIZATION'];
     }
 
+    /**
+     * @return string
+     */
     public function getPassword()
     {
         return $this->token;
     }
 
+    /**
+     * @return string
+     */
     public function getSalt()
     {
         return '';

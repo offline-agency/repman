@@ -19,6 +19,9 @@ final class MemberParamConverter implements ArgumentValueResolverInterface
         return $argument->getType() === Member::class;
     }
 
+    /**
+     * @return iterable<object>
+     */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         if (null === $userId = $request->attributes->get($argument->getName())) {

@@ -26,6 +26,9 @@ final class OrganizationParamConverter implements ArgumentValueResolverInterface
         return $argument->getType() === Organization::class;
     }
 
+    /**
+     * @return iterable<object>
+     */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         if (null === $alias = $request->attributes->get($argument->getName())) {

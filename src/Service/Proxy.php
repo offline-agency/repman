@@ -106,7 +106,7 @@ final class Proxy
         $provider = \array_pop($providers);
 
         \preg_match('/\$(?<hash>.+)$/', $provider['filename'], $matches);
-        $hash = $matches['hash'];
+        $hash = $matches['hash'] ?? '';
 
         return $this->fetchMetadata(
             \sprintf('%s/provider/provider-latest$%s.json', $this->url, $hash),
@@ -223,7 +223,7 @@ final class Proxy
         $latest = [];
         foreach ($files as $file) {
             \preg_match('/(?<name>.+)\$/', $file['filename'], $matches);
-            $key = $file['dirname'].'/'.$matches['name'];
+            $key = $file['dirname'].'/'.($matches['name'] ?? '');
             if (!isset($latest[$key])) {
                 $latest[$key] = $file;
                 continue;

@@ -25,6 +25,9 @@ final class TokenParamConverter implements ArgumentValueResolverInterface
         return $argument->getType() === Token::class;
     }
 
+    /**
+     * @return iterable<object>
+     */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         /** @var Token $token */
