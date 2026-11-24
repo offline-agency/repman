@@ -15,7 +15,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
 {
     public function testClearMetadataCache(): void
     {
-        $basePath = \sys_get_temp_dir().'/'.'repman/clear-metadata';
+        $basePath = \sys_get_temp_dir().'/repman/clear-metadata';
 
         $ignoredFiles = [
             $basePath.'/dist/.svn/foo/packages.json',
@@ -50,7 +50,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
 
     public function testNoMetadataFilesFound(): void
     {
-        $basePath = \sys_get_temp_dir().'/'.'repman/clear-metadata';
+        $basePath = \sys_get_temp_dir().'/repman/clear-metadata';
 
         $command = new ClearMetadataCacheCommand(new Filesystem(new Local($basePath)));
         $commandTester = new CommandTester($command);
@@ -65,7 +65,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
     private function prepareTempFiles(
         string $packagesFile,
         string $distFile,
-        array $ignoredFiles
+        array $ignoredFiles,
     ): void {
         $this->ensureDirExist($packagesFile);
         $this->ensureDirExist($distFile);

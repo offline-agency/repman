@@ -126,7 +126,7 @@ class PackageManager
      * @return Option<resource> Handle for a file
      */
     public function getDistFileReference(
-        string $fileName
+        string $fileName,
     ): Option {
         $fileResource = $this->repoFilesystem->readStream($fileName);
         if (false === $fileResource) {

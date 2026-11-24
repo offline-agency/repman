@@ -35,7 +35,7 @@ final class ReactDownloader implements Downloader
      *
      * @return Option<resource>
      */
-    public function getContents(string $url, array $headers = [], callable $notFoundHandler = null): Option
+    public function getContents(string $url, array $headers = [], ?callable $notFoundHandler = null): Option
     {
         $retries = 3;
         do {

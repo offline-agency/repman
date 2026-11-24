@@ -31,8 +31,8 @@ final class DbalOrganizationQuery implements OrganizationQuery
         $data = $this->connection->fetchAssociative(
             'SELECT id, name, alias, has_anonymous_access
             FROM "organization" WHERE alias = :alias', [
-            'alias' => $alias,
-        ]);
+                'alias' => $alias,
+            ]);
 
         if ($data === false) {
             return Option::none();
@@ -49,9 +49,9 @@ final class DbalOrganizationQuery implements OrganizationQuery
             JOIN organization_invitation i ON o.id = i.organization_id
             WHERE i.token = :token AND i.email = :email
         ', [
-            'token' => $token,
-            'email' => $email,
-        ]);
+                'token' => $token,
+                'email' => $email,
+            ]);
 
         if ($data === false) {
             return Option::none();
@@ -231,9 +231,9 @@ final class DbalOrganizationQuery implements OrganizationQuery
             FROM organization_token
             WHERE organization_id = :organization_id AND value = :value
             LIMIT 1', [
-            'organization_id' => $organizationId,
-            'value' => $value,
-        ]);
+                'organization_id' => $organizationId,
+                'value' => $value,
+            ]);
 
         return $data === false ? Option::none() : Option::some($this->hydrateToken($data));
     }
