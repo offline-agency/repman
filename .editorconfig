@@ -12,3 +12,7 @@ trim_trailing_whitespace = true
 
 [*.{yml,yaml}]
 indent_size = 2
+
+# serialized PHP payloads: a trailing newline makes unserialize() warn since PHP 8.3
+[tests/Resources/**/buddy-works/repman.json]
+insert_final_newline = false

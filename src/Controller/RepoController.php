@@ -9,7 +9,6 @@ use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\PackageName;
 use Buddy\Repman\Query\User\PackageQuery;
 use Buddy\Repman\Service\Organization\PackageManager;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +29,7 @@ final class RepoController extends AbstractController
     public function __construct(
         PackageQuery $packageQuery,
         PackageManager $packageManager,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->packageQuery = $packageQuery;
         $this->packageManager = $packageManager;
@@ -39,7 +38,6 @@ final class RepoController extends AbstractController
 
     /**
      * @Route("/packages.json", host="{organization}{sep1}repo{sep2}{domain}", name="repo_packages", methods={"GET"}, defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"}, requirements={"domain"="%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"})
-     * @Cache(public=false)
      */
     public function packages(Request $request, Organization $organization): JsonResponse
     {
@@ -80,7 +78,6 @@ final class RepoController extends AbstractController
      *     defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *     requirements={"package"="%package_name_pattern%","ref"="[a-f0-9]*?","type"="zip|tar","domain"="%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *     methods={"GET"})
-     * @Cache(public=false)
      */
     public function distribution(Organization $organization, string $package, string $version, string $ref, string $type): StreamedResponse
     {
@@ -88,7 +85,7 @@ final class RepoController extends AbstractController
             ->distFilename($organization->alias(), $package, $version, $ref, $type)
             ->getOrElseThrow(new NotFoundHttpException('This distribution file can not be found or downloaded from origin url.'));
 
-        return new StreamedResponse(function () use ($filename): void {
+        $response = new StreamedResponse(function () use ($filename): void {
             $outputStream = \fopen('php://output', 'wb');
             if (false === $outputStream) {
                 throw new HttpException(500, 'Could not open output stream to send binary file.'); // @codeCoverageIgnore
@@ -100,6 +97,8 @@ final class RepoController extends AbstractController
                 $outputStream
             );
         });
+
+        return $response->setPrivate();
     }
 
     /**
@@ -147,7 +146,6 @@ final class RepoController extends AbstractController
      *      methods={"GET"},
      *      defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *      requirements={"domain"="%domain%","package"="%package_name_pattern%","sep1"="%organization_separator%","sep2"="%domain_separator%"})
-     * @Cache(public=false)
      */
     public function providerV2Dev(Request $request, Organization $organization, string $package): JsonResponse
     {
@@ -165,7 +163,6 @@ final class RepoController extends AbstractController
      *      methods={"GET"},
      *      defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *      requirements={"domain"="%domain%","package"="%package_name_pattern%","sep1"="%organization_separator%","sep2"="%domain_separator%"})
-     * @Cache(public=false)
      */
     public function providerV2(Request $request, Organization $organization, string $package): JsonResponse
     {

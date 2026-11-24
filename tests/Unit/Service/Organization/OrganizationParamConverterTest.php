@@ -9,8 +9,8 @@ use Buddy\Repman\Service\Organization\OrganizationParamConverter;
 use Buddy\Repman\Tests\MotherObject\Query\OrganizationMother;
 use Munus\Control\Option;
 use PHPUnit\Framework\TestCase;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 final class OrganizationParamConverterTest extends TestCase
@@ -20,7 +20,7 @@ final class OrganizationParamConverterTest extends TestCase
         $converter = new OrganizationParamConverter($this->getMockBuilder(OrganizationQuery::class)->getMock());
 
         $this->expectException(BadRequestHttpException::class);
-        $converter->apply(new Request(), new ParamConverter(['name' => 'organization']));
+        $converter->resolve(new Request(), new ArgumentMetadata('organization', null, false, false, null));
     }
 
     public function testCheckIfOrganizationIsAlreadyConverted(): void
@@ -30,9 +30,9 @@ final class OrganizationParamConverterTest extends TestCase
 
         $converter = new OrganizationParamConverter($queryMock);
 
-        $converter->apply(new Request([], [], [
+        $converter->resolve(new Request([], [], [
             'organization' => OrganizationMother::some(),
-        ]), new ParamConverter(['name' => 'organization']));
+        ]), new ArgumentMetadata('organization', null, false, false, null));
     }
 
     public function testConvertOrganization(): void
@@ -43,7 +43,7 @@ final class OrganizationParamConverterTest extends TestCase
 
         $converter = new OrganizationParamConverter($queryMock);
 
-        $converter->apply($request = new Request([], [], ['organization' => 'buddy']), new ParamConverter(['name' => 'organization']));
+        $converter->resolve($request = new Request([], [], ['organization' => 'buddy']), new ArgumentMetadata('organization', null, false, false, null));
 
         self::assertEquals($organization, $request->attributes->get('organization'));
     }

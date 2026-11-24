@@ -21,7 +21,6 @@ use Buddy\Repman\Service\IntegrationRegister;
 use Buddy\Repman\Service\User\UserOAuthTokenProvider;
 use Http\Client\Exception as HttpException;
 use Ramsey\Uuid\Uuid;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -43,7 +42,7 @@ final class PackageController extends AbstractController
     public function __construct(
         UserOAuthTokenProvider $oauthProvider,
         IntegrationRegister $integrations,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->oauthProvider = $oauthProvider;
         $this->integrations = $integrations;
@@ -51,11 +50,12 @@ final class PackageController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/package/new/{type?}", name="organization_package_new", methods={"GET","POST"}, requirements={"organization"="%organization_pattern%"})
      */
     public function packageNew(Organization $organization, Request $request, ?string $type): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $form = $this->createForm(AddPackageType::class);
         $form->get('formUrl')->setData($this->generateUrl(
             $request->attributes->get('_route'),
@@ -126,11 +126,12 @@ final class PackageController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/package/{package}/edit", name="organization_package_edit", methods={"GET","POST"}, requirements={"organization"="%organization_pattern%","package"="%uuid_pattern%"})
      */
     public function editPackage(Organization $organization, Package $package, Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $form = $this->createForm(EditPackageType::class, [
             'url' => $package->url(),
             'keepLastReleases' => $package->keepLastReleases(),
@@ -164,6 +165,7 @@ final class PackageController extends AbstractController
 
     /**
      * @param array<string,int|string> $choices
+     * @param FormInterface<mixed>     $form
      */
     private function addRepositoriesChoiceType(FormInterface $form, array $choices): void
     {
@@ -188,6 +190,9 @@ final class PackageController extends AbstractController
         return $this->redirectToRoute('organization_packages', ['organization' => $organization->alias()]);
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromUrl(string $label, FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $form->add(
@@ -219,6 +224,9 @@ final class PackageController extends AbstractController
         return null;
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromGitHub(FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $token = $this->oauthProvider->findAccessToken($this->getUser()->id(), OAuthToken::TYPE_GITHUB);
@@ -250,6 +258,9 @@ final class PackageController extends AbstractController
         return null;
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromGitLab(FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $token = $this->oauthProvider->findAccessToken($this->getUser()->id(), OAuthToken::TYPE_GITLAB);
@@ -281,6 +292,9 @@ final class PackageController extends AbstractController
         return null;
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromBitbucket(FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $token = $this->oauthProvider->findAccessToken($this->getUser()->id(), OAuthToken::TYPE_BITBUCKET);

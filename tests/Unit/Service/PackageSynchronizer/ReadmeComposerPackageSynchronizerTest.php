@@ -85,7 +85,7 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(3, $package->versions());
         self::assertEquals('1.3.0', $package->latestReleasedVersion());
         self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" name=\"test\" class=\"\" aria-hidden=\"true\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
+            "<h1><a id=\"user-content-test\" href=\"#user-content-test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
             $package->readme()
         );
     }
@@ -107,7 +107,7 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $package->versions());
         self::assertEquals('1.3.0', $package->latestReleasedVersion());
         self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" name=\"test\" class=\"\" aria-hidden=\"true\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
+            "<h1><a id=\"user-content-test\" href=\"#user-content-test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
             $package->readme()
         );
     }
@@ -135,7 +135,7 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $package->versions());
         self::assertEquals('1.3.0', $package->latestReleasedVersion());
         self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" name=\"test\" class=\"\" aria-hidden=\"true\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
+            "<h1><a id=\"user-content-test\" href=\"#user-content-test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
             $package->readme()
         );
     }
@@ -157,7 +157,7 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $package->versions());
         self::assertEquals('no stable release', $package->latestReleasedVersion());
         self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" name=\"test\" class=\"\" aria-hidden=\"true\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
+            "<h1><a id=\"user-content-test\" href=\"#user-content-test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
             $package->readme()
         );
     }

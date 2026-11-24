@@ -9,6 +9,7 @@ use KnpU\OAuth2ClientBundle\Security\Exception\IdentityProviderAuthenticationExc
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Omines\OAuth2\Client\Provider\GitlabResourceOwner;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -39,7 +40,8 @@ final class GitLabAuthenticator extends OAuthAuthenticator
                 $request->attributes->get('_route')
             ));
         } catch (IdentityProviderException|IdentityProviderAuthenticationException $exception) {
-            throw new CustomUserMessageAuthenticationException($exception->getMessage());
+            // newer versions of the GitLab provider report an unparseable body before looking at the status code
+            throw new CustomUserMessageAuthenticationException($exception->getCode() === Response::HTTP_TOO_MANY_REQUESTS ? Response::$statusTexts[Response::HTTP_TOO_MANY_REQUESTS] : $exception->getMessage());
         }
 
         $user = $this->userProvider->loadUserByIdentifier($gitLabUser->getEmail());

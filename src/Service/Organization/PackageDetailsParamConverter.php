@@ -7,13 +7,13 @@ namespace Buddy\Repman\Service\Organization;
 use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\PackageDetails;
 use Buddy\Repman\Query\User\PackageQuery;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class PackageDetailsParamConverter implements ParamConverterInterface
+final class PackageDetailsParamConverter implements ArgumentValueResolverInterface
 {
     private PackageQuery $packageQuery;
 
@@ -22,12 +22,15 @@ final class PackageDetailsParamConverter implements ParamConverterInterface
         $this->packageQuery = $packageQuery;
     }
 
-    public function supports(ParamConverter $configuration)
+    public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return $configuration->getClass() === PackageDetails::class;
+        return $argument->getType() === PackageDetails::class;
     }
 
-    public function apply(Request $request, ParamConverter $configuration)
+    /**
+     * @return iterable<object>
+     */
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         if (null === $id = $request->attributes->get('package')) {
             throw new BadRequestHttpException('Missing package parameter in request');
@@ -40,8 +43,8 @@ final class PackageDetailsParamConverter implements ParamConverterInterface
             throw new NotFoundHttpException('Package not found');
         }
 
-        $request->attributes->set($configuration->getName(), $package);
+        $request->attributes->set($argument->getName(), $package);
 
-        return true;
+        return [$request->attributes->get($argument->getName())];
     }
 }

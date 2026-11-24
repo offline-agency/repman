@@ -14,13 +14,9 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Memory\MemoryAdapter;
 use PHPUnit\Framework\TestCase;
-use Prophecy\Argument;
-use Prophecy\PhpUnit\ProphecyTrait;
 
 final class PackageManagerTest extends TestCase
 {
-    use ProphecyTrait;
-
     private PackageManager $manager;
     private string $baseDir;
     private FilesystemInterface $filesystem;
@@ -58,15 +54,14 @@ final class PackageManagerTest extends TestCase
 
     public function testReturnDistributionFilenameWhenExist(): void
     {
-        /** @phpstan-var mixed $storage */
-        $storage = $this->prophesize(Storage::class);
-        $storage->has(Argument::type(Dist::class))->willReturn(true);
-        $storage->download(Argument::cetera())->shouldNotBeCalled();
-        $storage->filename(Argument::type(Dist::class))->willReturn(
+        $storage = $this->createMock(Storage::class);
+        $storage->method('has')->with(self::isInstanceOf(Dist::class))->willReturn(true);
+        $storage->expects(self::never())->method('download');
+        $storage->method('filename')->with(self::isInstanceOf(Dist::class))->willReturn(
             __DIR__.'/../../../Resources/buddy/dist/buddy-works/repman/1.2.3.0_ac7dcaf888af2324cd14200769362129c8dd8550.zip'
         );
 
-        $manager = new PackageManager($storage->reveal(), $this->filesystem);
+        $manager = new PackageManager($storage, $this->filesystem);
 
         self::assertStringContainsString(
             '1.2.3.0_ac7dcaf888af2324cd14200769362129c8dd8550.zip',

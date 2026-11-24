@@ -6,12 +6,12 @@ namespace Buddy\Repman\Service\Api;
 
 use Buddy\Repman\Query\Api\Model\Package;
 use Buddy\Repman\Query\Api\PackageQuery;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class PackageParamConverter implements ParamConverterInterface
+final class PackageParamConverter implements ArgumentValueResolverInterface
 {
     private PackageQuery $packageQuery;
 
@@ -20,20 +20,23 @@ final class PackageParamConverter implements ParamConverterInterface
         $this->packageQuery = $packageQuery;
     }
 
-    public function supports(ParamConverter $configuration)
+    public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return $configuration->getClass() === Package::class;
+        return $argument->getType() === Package::class;
     }
 
-    public function apply(Request $request, ParamConverter $configuration)
+    /**
+     * @return iterable<object>
+     */
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         /** @var Package $package */
         $package = $this->packageQuery
             ->getById($request->attributes->get('organization')->id(), $request->attributes->get('package'))
             ->getOrElseThrow(new NotFoundHttpException());
 
-        $request->attributes->set($configuration->getName(), $package);
+        $request->attributes->set($argument->getName(), $package);
 
-        return true;
+        return [$request->attributes->get($argument->getName())];
     }
 }

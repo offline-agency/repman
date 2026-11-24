@@ -50,7 +50,13 @@ final class ComposerPackageSynchronizerTest extends TestCase
         $path = $this->baseDir.'/buddy/p/repman-io/repman.json';
         @unlink($path);
 
-        $basePath = dirname(__DIR__, 4);
+        // Composer 2 also reports dev-master for a path repository inside a git checkout,
+        // so use a plain copy of the composer.json to not depend on the checked out branch
+        $basePath = sys_get_temp_dir().'/repman/path-repository';
+        if (!is_dir($basePath)) {
+            mkdir($basePath, 0777, true);
+        }
+        copy(dirname(__DIR__, 4).'/composer.json', $basePath.'/composer.json');
         $this->downloader->addContent($basePath, 'foobar');
 
         $package = PackageMother::withOrganization('path', $basePath, 'buddy');
@@ -69,7 +75,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
     {
         $this->synchronizer->synchronize($package = PackageMother::withOrganization('artifact', '/non/exist/path', 'buddy'));
 
-        self::assertMatchesRegularExpression('/Error: RecursiveDirectoryIterator::__construct\(\/non\/exist\/path\): (F|f)ailed to open (dir|directory): No such file or directory/', $this->getProperty($package, 'lastSyncError'));
+        self::assertMatchesRegularExpression('/Error: RecursiveDirectoryIterator::__construct\((\/non\/exist\/path)?\): (F|f)ailed to open (dir|directory): No such file or directory/', $this->getProperty($package, 'lastSyncError'));
     }
 
     public function testSynchronizePackageFromArtifacts(): void

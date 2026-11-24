@@ -28,7 +28,6 @@ use Buddy\Repman\Service\User\UserOAuthTokenProvider;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
 use Ramsey\Uuid\Uuid;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,7 +49,7 @@ final class PackageController extends ApiController
         PackageQuery $packageQuery,
         UserOAuthTokenProvider $oauthProvider,
         IntegrationRegister $integrations,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->packageQuery = $packageQuery;
         $this->oauthProvider = $oauthProvider;
@@ -75,6 +74,7 @@ final class PackageController extends ApiController
      * @OA\Response(
      *     response=200,
      *     description="Returns list of organization's packages",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Packages::class)
      *     )
@@ -120,6 +120,7 @@ final class PackageController extends ApiController
      * @OA\Response(
      *     response=200,
      *     description="Returns a single package",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Package::class)
      *     )
@@ -129,7 +130,6 @@ final class PackageController extends ApiController
      *     response=404,
      *     description="Package not found"
      * )
-     *
      * @OA\Response(
      *     response=403,
      *     description="Forbidden"
@@ -144,8 +144,6 @@ final class PackageController extends ApiController
 
     /**
      * Remove package.
-     *
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      *
      * @Route("/api/organization/{organization}/package/{package}",
      *     name="api_package_remove",
@@ -163,12 +161,10 @@ final class PackageController extends ApiController
      *     response=200,
      *     description="Package removed, if there was a problem with removing the webhook, the 'warning' field will appear"
      * )
-     *
      * @OA\Response(
      *     response=404,
      *     description="Package not found"
      * )
-     *
      * @OA\Response(
      *     response=403,
      *     description="Forbidden"
@@ -178,6 +174,8 @@ final class PackageController extends ApiController
      */
     public function removePackage(Organization $organization, Package $package): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $warning = $this->tryToRemoveWebhook($package);
         $this->messageBus->dispatch(new RemovePackage($package->getId(), $organization->id()));
 
@@ -205,7 +203,6 @@ final class PackageController extends ApiController
      *     response=200,
      *     description="Package updated"
      * )
-     *
      * @OA\Response(
      *     response=404,
      *     description="Package not found"
@@ -223,8 +220,6 @@ final class PackageController extends ApiController
     /**
      * Update and synchronize package.
      *
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
-     *
      * @Route("/api/organization/{organization}/package/{package}",
      *     name="api_package_update",
      *     methods={"PATCH"},
@@ -238,6 +233,7 @@ final class PackageController extends ApiController
      * )
      *
      * @OA\RequestBody(
+     *
      *     @Model(type=EditPackageType::class)
      * )
      *
@@ -245,17 +241,14 @@ final class PackageController extends ApiController
      *     response=200,
      *     description="Package updated"
      * )
-     *
      * @OA\Response(
      *     response=404,
      *     description="Package not found"
      * )
-     *
      * @OA\Response(
      *     response=403,
      *     description="Forbidden"
      * )
-     *
      * @OA\Response(
      *     response=400,
      *     description="Bad request"
@@ -265,6 +258,8 @@ final class PackageController extends ApiController
      */
     public function updatePackage(Organization $organization, Package $package, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $form = $this->createApiForm(EditPackageType::class);
 
         $form->submit(array_merge([
@@ -291,8 +286,6 @@ final class PackageController extends ApiController
     /**
      * Add new package.
      *
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
-     *
      * @Route("/api/organization/{organization}/package",
      *     name="api_package_add",
      *     methods={"POST"},
@@ -300,12 +293,14 @@ final class PackageController extends ApiController
      * )
      *
      * @OA\RequestBody(
+     *
      *     @Model(type=AddPackageType::class)
      * )
      *
      * @OA\Response(
      *     response=201,
      *     description="Returns added package",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Package::class)
      *     )
@@ -314,6 +309,7 @@ final class PackageController extends ApiController
      * @OA\Response(
      *     response=400,
      *     description="Bad request",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Errors::class)
      *     )
@@ -328,6 +324,8 @@ final class PackageController extends ApiController
      */
     public function addPackage(Organization $organization, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $form = $this->createApiForm(AddPackageType::class);
         $json = $this->parseJson($request);
         $type = $json['type'] ?? null;
@@ -356,6 +354,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function handleAddPackage(?string $type, FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -390,6 +389,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromUrl(FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -414,6 +414,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromGitHub(FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -442,6 +443,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromGitLab(FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -475,6 +477,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromBitbucket(FormInterface $form, Organization $organization, array $json): ?string
     {

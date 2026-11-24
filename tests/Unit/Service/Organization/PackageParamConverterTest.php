@@ -10,8 +10,8 @@ use Buddy\Repman\Service\Organization\PackageParamConverter;
 use Buddy\Repman\Tests\MotherObject\Query\OrganizationMother;
 use Munus\Control\Option;
 use PHPUnit\Framework\TestCase;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -22,7 +22,7 @@ final class PackageParamConverterTest extends TestCase
         $converter = new PackageParamConverter($this->getMockBuilder(PackageQuery::class)->getMock());
 
         $this->expectException(BadRequestHttpException::class);
-        $converter->apply(new Request(), new ParamConverter([]));
+        $converter->resolve(new Request(), new ArgumentMetadata('argument', null, false, false, null));
     }
 
     public function testConvertPackage(): void
@@ -32,7 +32,7 @@ final class PackageParamConverterTest extends TestCase
         $queryMock->expects(self::once())->method('getById')->willReturn(Option::some($package));
 
         $converter = new PackageParamConverter($queryMock);
-        $converter->apply($request = new Request([], [], ['package' => $id]), new ParamConverter(['name' => 'package']));
+        $converter->resolve($request = new Request([], [], ['package' => $id]), new ArgumentMetadata('package', null, false, false, null));
 
         self::assertEquals($package, $request->attributes->get('package'));
     }
@@ -46,9 +46,9 @@ final class PackageParamConverterTest extends TestCase
         $converter = new PackageParamConverter($queryMock);
 
         $this->expectException(NotFoundHttpException::class);
-        $converter->apply($request = new Request([], [], [
+        $converter->resolve($request = new Request([], [], [
             'package' => $id,
             'organization' => OrganizationMother::some(),
-        ]), new ParamConverter(['name' => 'package']));
+        ]), new ArgumentMetadata('package', null, false, false, null));
     }
 }

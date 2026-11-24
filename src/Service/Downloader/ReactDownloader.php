@@ -19,6 +19,9 @@ final class ReactDownloader implements Downloader
 {
     private LoopInterface $loop;
     private Browser $browser;
+    /**
+     * @var Queue<ResponseInterface>
+     */
     private Queue $queue;
 
     public function __construct()
@@ -35,7 +38,7 @@ final class ReactDownloader implements Downloader
      *
      * @return Option<resource>
      */
-    public function getContents(string $url, array $headers = [], callable $notFoundHandler = null): Option
+    public function getContents(string $url, array $headers = [], ?callable $notFoundHandler = null): Option
     {
         $retries = 3;
         do {
@@ -117,6 +120,6 @@ final class ReactDownloader implements Downloader
     {
         preg_match('{HTTP\/\S*\s(\d{3})}', $headers[0], $match);
 
-        return (int) $match[1];
+        return (int) ($match[1] ?? 0);
     }
 }

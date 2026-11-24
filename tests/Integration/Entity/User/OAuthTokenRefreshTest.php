@@ -135,7 +135,6 @@ final class OAuthTokenRefreshTest extends IntegrationTestCase
 
     private function entityManager(): EntityManagerInterface
     {
-        /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->container()->get('doctrine.orm.entity_manager');
 
         return $entityManager;

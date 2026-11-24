@@ -10,7 +10,6 @@ use Buddy\Repman\Query\User\UserQuery;
 use Buddy\Repman\Security\Model\User;
 use Buddy\Repman\Service\Integration\GitHubApi;
 use League\OAuth2\Client\Token\AccessToken;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -54,11 +53,12 @@ final class GitHubController extends OAuthController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/package/add-from-github", name="fetch_github_package_token", methods={"GET"}, requirements={"organization"="%organization_pattern%"})
      */
     public function packageAddFromGithub(Request $request, Organization $organization, UserQuery $userQuery): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         /** @var User */
         $user = $this->getUser();
         if ($userQuery->hasOAuthAccessToken($user->id(), OAuthToken::TYPE_GITHUB)) {

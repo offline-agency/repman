@@ -1,5 +1,18 @@
 # UPGRADE
 
+## UPGRADE FROM 1.x to 2.0.x
+
+- PHP 8.4 or later is required (PHP 7.4 to 8.3 are no longer supported); the `Dockerfile` is now based on
+  `php:8.4-fpm-alpine` and the Ansible role installs PHP 8.4 (`php_version`), so rebuild your image / run the playbook again
+- run `composer install` and clear cache (`bin/console cache:clear`)
+- `sensio/framework-extra-bundle` (abandoned) was removed, so if you have made custom changes that use its annotations,
+  request converters become argument value resolvers (tag `controller.argument_value_resolver`, priority above `100`),
+  `@IsGranted` becomes `denyAccessUnlessGranted()` and `@Cache(public=false)` becomes `$response->setPrivate()`
+- `doctrine/annotations` is now required explicitly and `twig/twig` 3.9 or later is required (the `spaceless` filter was replaced by `compact_html`)
+- no database migration was added
+
+More details in [docs/v2/upgrading.md](docs/v2/upgrading.md)
+
 ## UPGRADE FROM 1.1.x to 1.2.x
 
 - symfony version has been raised to `5.2`, so if you have made any custom changes, we encourage you
