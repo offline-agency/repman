@@ -87,10 +87,14 @@ jobs:
       - name: "Run composer audit"
         run: "composer audit --no-dev --locked"
 
+      # the locked php-cs-fixer (3.9) and PHPStan (1.8) cannot run on PHP 8.2+, and static
+      # analysis does not depend on the runtime version: run them on the lowest one only
       - name: "Check code style"
+        if: "${{ matrix.php == '7.4' }}"
         run: "composer check-cs"
 
       - name: "Run PHPStan"
+        if: "${{ matrix.php == '7.4' }}"
         run: "composer phpstan"
 
       - name: "Lint twig"
