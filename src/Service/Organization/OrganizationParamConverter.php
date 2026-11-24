@@ -6,13 +6,13 @@ namespace Buddy\Repman\Service\Organization;
 
 use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\OrganizationQuery;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class OrganizationParamConverter implements ParamConverterInterface
+final class OrganizationParamConverter implements ArgumentValueResolverInterface
 {
     private OrganizationQuery $organizationQuery;
 
@@ -21,26 +21,26 @@ final class OrganizationParamConverter implements ParamConverterInterface
         $this->organizationQuery = $organizationQuery;
     }
 
-    public function supports(ParamConverter $configuration)
+    public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return $configuration->getClass() === Organization::class;
+        return $argument->getType() === Organization::class;
     }
 
-    public function apply(Request $request, ParamConverter $configuration)
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
-        if (null === $alias = $request->attributes->get($configuration->getName())) {
+        if (null === $alias = $request->attributes->get($argument->getName())) {
             throw new BadRequestHttpException('Missing organization parameter in request');
         }
 
-        if ($request->attributes->get($configuration->getName()) instanceof Organization) {
-            return true;
+        if ($request->attributes->get($argument->getName()) instanceof Organization) {
+            return [$request->attributes->get($argument->getName())];
         }
 
         $request->attributes->set(
-            $configuration->getName(),
+            $argument->getName(),
             $this->organizationQuery->getByAlias($alias)->getOrElseThrow(new NotFoundHttpException(sprintf('Organization %s not found', $alias)))
         );
 
-        return true;
+        return [$request->attributes->get($argument->getName())];
     }
 }

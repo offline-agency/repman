@@ -6,12 +6,12 @@ namespace Buddy\Repman\Service\Api;
 
 use Buddy\Repman\Query\Api\Model\Token;
 use Buddy\Repman\Query\Api\OrganizationQuery;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class TokenParamConverter implements ParamConverterInterface
+final class TokenParamConverter implements ArgumentValueResolverInterface
 {
     private OrganizationQuery $organizationQuery;
 
@@ -20,12 +20,12 @@ final class TokenParamConverter implements ParamConverterInterface
         $this->organizationQuery = $organizationQuery;
     }
 
-    public function supports(ParamConverter $configuration)
+    public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return $configuration->getClass() === Token::class;
+        return $argument->getType() === Token::class;
     }
 
-    public function apply(Request $request, ParamConverter $configuration)
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         /** @var Token $token */
         $token = $this->organizationQuery->findToken(
@@ -33,8 +33,8 @@ final class TokenParamConverter implements ParamConverterInterface
             $request->attributes->get('token')
         )->getOrElseThrow(new NotFoundHttpException());
 
-        $request->attributes->set($configuration->getName(), $token);
+        $request->attributes->set($argument->getName(), $token);
 
-        return true;
+        return [$request->attributes->get($argument->getName())];
     }
 }

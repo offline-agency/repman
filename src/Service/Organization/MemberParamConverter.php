@@ -6,22 +6,22 @@ namespace Buddy\Repman\Service\Organization;
 
 use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\Organization\Member;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class MemberParamConverter implements ParamConverterInterface
+final class MemberParamConverter implements ArgumentValueResolverInterface
 {
-    public function supports(ParamConverter $configuration)
+    public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return $configuration->getClass() === Member::class;
+        return $argument->getType() === Member::class;
     }
 
-    public function apply(Request $request, ParamConverter $configuration)
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
-        if (null === $userId = $request->attributes->get($configuration->getName())) {
+        if (null === $userId = $request->attributes->get($argument->getName())) {
             throw new BadRequestHttpException('Missing member parameter in request');
         }
         $organization = $request->attributes->get('organization');
@@ -29,15 +29,15 @@ final class MemberParamConverter implements ParamConverterInterface
             throw new BadRequestHttpException('Missing organization parameter in request');
         }
 
-        if ($request->attributes->get($configuration->getName()) instanceof Member) {
-            return true;
+        if ($request->attributes->get($argument->getName()) instanceof Member) {
+            return [$request->attributes->get($argument->getName())];
         }
 
         $request->attributes->set(
-            $configuration->getName(),
+            $argument->getName(),
             $organization->getMember($userId)->getOrElseThrow(new NotFoundHttpException(sprintf('User %s not found in %s organization', $userId, $organization->name())))
         );
 
-        return true;
+        return [$request->attributes->get($argument->getName())];
     }
 }

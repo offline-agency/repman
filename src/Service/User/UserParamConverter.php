@@ -6,13 +6,13 @@ namespace Buddy\Repman\Service\User;
 
 use Buddy\Repman\Query\Admin\Model\User;
 use Buddy\Repman\Query\Admin\UserQuery;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class UserParamConverter implements ParamConverterInterface
+final class UserParamConverter implements ArgumentValueResolverInterface
 {
     private UserQuery $userQuery;
 
@@ -21,25 +21,25 @@ final class UserParamConverter implements ParamConverterInterface
         $this->userQuery = $userQuery;
     }
 
-    public function supports(ParamConverter $configuration)
+    public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return $configuration->getClass() === User::class;
+        return $argument->getType() === User::class;
     }
 
-    public function apply(Request $request, ParamConverter $configuration)
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         if (null === $id = $request->attributes->get('user')) {
             throw new BadRequestHttpException('Missing user parameter in request');
         }
 
         $request->attributes->set(
-            $configuration->getName(),
+            $argument->getName(),
             $this
                 ->userQuery
                 ->getById($id)
                 ->getOrElseThrow(new NotFoundHttpException('User not found'))
         );
 
-        return true;
+        return [$request->attributes->get($argument->getName())];
     }
 }

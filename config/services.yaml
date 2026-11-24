@@ -51,6 +51,47 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
+    # request attribute -> object resolvers: they must run before RequestAttributeValueResolver (priority 100)
+    Buddy\Repman\Service\Api\PackageParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
+    Buddy\Repman\Service\Api\TokenParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
+    Buddy\Repman\Service\Organization\MemberParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
+    Buddy\Repman\Service\Organization\OrganizationParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
+    Buddy\Repman\Service\Organization\PackageDetailsParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
+    Buddy\Repman\Service\Organization\PackageParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
+    Buddy\Repman\Service\Organization\TokenParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
+    Buddy\Repman\Service\User\UserParamConverter:
+        autoconfigure: false
+        tags:
+            - { name: controller.argument_value_resolver, priority: 150 }
+
     Buddy\Repman\Service\Integration\Aws\S3AdapterFactory:
         arguments:
             - '%env(STORAGE_AWS_REGION)%'

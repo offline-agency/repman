@@ -17,7 +17,6 @@ use Buddy\Repman\Query\User\Model\Organization\Member;
 use Buddy\Repman\Query\User\OrganizationQuery;
 use Buddy\Repman\Security\Model\User;
 use Ramsey\Uuid\Uuid;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +33,7 @@ final class MembersController extends AbstractController
     public function __construct(
         OrganizationQuery $organizations,
         TokenStorageInterface $tokenStorage,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->organizations = $organizations;
         $this->tokenStorage = $tokenStorage;
@@ -88,11 +87,12 @@ final class MembersController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/member/invite", name="organization_invite_member", methods={"GET", "POST"}, requirements={"organization"="%organization_pattern%"})
      */
     public function invite(Organization $organization, Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $form = $this->createForm(InviteMemberType::class, [], ['organizationId' => $organization->id()]);
         $form->handleRequest($request);
 
@@ -116,11 +116,12 @@ final class MembersController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/invitation", name="organization_invitations", methods={"GET"}, requirements={"organization"="%organization_pattern%"})
      */
     public function listInvitations(Organization $organization, Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $filter = Filter::fromRequest($request);
 
         return $this->render('organization/member/invitations.html.twig', [
@@ -132,11 +133,12 @@ final class MembersController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/invitation/{token}", name="organization_remove_invitation", methods={"DELETE"}, requirements={"organization"="%organization_pattern%"})
      */
     public function removeInvitation(Organization $organization, string $token): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $this->messageBus->dispatch(new RemoveInvitation($organization->id(), $token));
         $this->addFlash('success', 'The invitation has been deleted');
 
@@ -144,11 +146,12 @@ final class MembersController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/member/{member}", name="organization_remove_member", methods={"DELETE"}, requirements={"organization"="%organization_pattern%", "member"="%uuid_pattern%"})
      */
     public function removeMember(Organization $organization, Member $member): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         if ($organization->isLastOwner($member->userId())) {
             $this->addFlash('danger', sprintf('Member "%s" cannot be removed. Organisation must have at least one owner.', $member->email()));
         } else {
@@ -160,11 +163,12 @@ final class MembersController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/member/{member}/role", name="organization_change_member_role", methods={"GET", "POST"}, requirements={"organization"="%organization_pattern%", "member"="%uuid_pattern%"})
      */
     public function changeRole(Organization $organization, Member $member, Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $form = $this->createForm(ChangeRoleType::class, ['role' => $member->role()], ['isLastOwner' => $organization->isLastOwner($member->userId())]);
         $form->handleRequest($request);
 

@@ -33,7 +33,6 @@ use Buddy\Repman\Query\User\OrganizationQuery;
 use Buddy\Repman\Query\User\PackageQuery;
 use Buddy\Repman\Query\User\PackageQuery\Filter as PackageFilter;
 use Buddy\Repman\Security\Model\User;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,7 +50,7 @@ final class OrganizationController extends AbstractController
     public function __construct(
         PackageQuery $packageQuery,
         OrganizationQuery $organizationQuery,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->packageQuery = $packageQuery;
         $this->organizationQuery = $organizationQuery;
@@ -93,11 +92,12 @@ final class OrganizationController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/package/{package}", name="organization_package_remove", methods={"DELETE"}, requirements={"organization"="%organization_pattern%","package"="%uuid_pattern%"})
      */
     public function removePackage(Organization $organization, Package $package): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $this->tryToRemoveWebhook($package);
 
         $this->messageBus->dispatch(new RemovePackage(
@@ -258,11 +258,12 @@ final class OrganizationController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}/settings", name="organization_settings", methods={"GET","POST"}, requirements={"organization"="%organization_pattern%"})
      */
     public function settings(Organization $organization, Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $renameForm = $this->createForm(ChangeNameType::class, ['name' => $organization->name()]);
         $renameForm->handleRequest($request);
         if ($renameForm->isSubmitted() && $renameForm->isValid()) {
@@ -299,13 +300,14 @@ final class OrganizationController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
      * @Route("/organization/{organization}", name="organization_remove", methods={"DELETE"}, requirements={"organization"="%organization_pattern%"})
      */
     public function removeOrganization(Organization $organization): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ORGANIZATION_OWNER', $organization);
+
         $offset = 0;
-        while (($packages = $this->packageQuery->findAll($organization->id(), new PackageQuery\Filter($offset, $limit = 100))) !== []) {
+        while (($packages = $this->packageQuery->findAll($organization->id(), new PackageFilter($offset, $limit = 100))) !== []) {
             array_walk($packages, [$this, 'tryToRemoveWebhook']);
             $offset += $limit;
         }
@@ -387,8 +389,8 @@ final class OrganizationController extends AbstractController
     {
         $user = parent::getUser();
 
-        return $user instanceof User &&
-            $organization->isOwner($user->id()) &&
-            $this->packageQuery->count($organization->id(), new PackageFilter()) === 0;
+        return $user instanceof User
+            && $organization->isOwner($user->id())
+            && $this->packageQuery->count($organization->id(), new PackageFilter()) === 0;
     }
 }
