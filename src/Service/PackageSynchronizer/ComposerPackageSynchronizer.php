@@ -21,7 +21,6 @@ use Composer\Factory;
 use Composer\IO\BufferIO;
 use Composer\IO\IOInterface;
 use Composer\Package\CompletePackage;
-use Composer\Package\Link as ComposerLink;
 use Composer\Package\PackageInterface;
 use Composer\Repository\RepositoryFactory;
 use Composer\Repository\RepositoryInterface;
@@ -112,11 +111,11 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                         'packageName' => $p->getPrettyName(),
                         'prettyVersion' => $p->getPrettyVersion(),
                         'version' => $p->getVersion(),
-                        'ref' => $p->getDistReference() ?? $p->getDistSha1Checksum(),
-                        'distType' => $p->getDistType(),
+                        'ref' => $p->getDistReference() ?? $p->getDistSha1Checksum() ?? '',
+                        'distType' => (string) $p->getDistType(),
                         'distUrl' => $p->getDistUrl(),
                         'authHeaders' => $this->getAuthHeaders($package),
-                        'releaseDate' => \DateTimeImmutable::createFromMutable($p->getReleaseDate() ?? new \DateTime()),
+                        'releaseDate' => \DateTimeImmutable::createFromInterface($p->getReleaseDate() ?? new \DateTimeImmutable()),
                         'stability' => $p->getStability(),
                     ];
                 }
@@ -163,14 +162,17 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                     $this->readmeExtractor->extractReadme($package, $dist);
 
                     // Set the version links
-                    foreach (['requires', 'devRequires', 'provides', 'replaces', 'conflicts'] as $type) {
-                        $functionName = 'get'.$type;
-                        if (method_exists($latest, $functionName)) {
-                            /** @var ComposerLink $link */
-                            foreach ($latest->{$functionName}() as $link) {
-                                $package->addLink(new Link(Uuid::uuid4(), $package, $type, $link->getTarget(), $link->getPrettyConstraint()));
-                                $encounteredLinks[$type.'-'.$link->getTarget()] = true;
-                            }
+                    $linksByType = [
+                        'requires' => $latest->getRequires(),
+                        'devRequires' => $latest->getDevRequires(),
+                        'provides' => $latest->getProvides(),
+                        'replaces' => $latest->getReplaces(),
+                        'conflicts' => $latest->getConflicts(),
+                    ];
+                    foreach ($linksByType as $type => $links) {
+                        foreach ($links as $link) {
+                            $package->addLink(new Link(Uuid::uuid4(), $package, $type, $link->getTarget(), $link->getPrettyConstraint()));
+                            $encounteredLinks[$type.'-'.$link->getTarget()] = true;
                         }
                     }
 
@@ -208,7 +210,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                 $latest->getStability() === Version::STABILITY_STABLE ? $latest->getPrettyVersion() : 'no stable release',
                 $encounteredVersions,
                 $encounteredLinks,
-                \DateTimeImmutable::createFromMutable($latest->getReleaseDate() ?? new \DateTime()),
+                \DateTimeImmutable::createFromInterface($latest->getReleaseDate() ?? new \DateTimeImmutable()),
             );
 
             $this->packageManager->saveProvider($json, $package->organizationAlias(), $name);

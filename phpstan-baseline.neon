@@ -31,21 +31,6 @@ parameters:
 			path: src/Service/Downloader/ReactDownloader.php
 
 		-
-			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
-			count: 4
-			path: src/Service/PackageSynchronizer/ComposerPackageSynchronizer.php
-
-		-
-			message: "#^Strict comparison using \\!\\=\\= between string and null will always evaluate to true\\.$#"
-			count: 1
-			path: src/Service/PackageSynchronizer/ComposerPackageSynchronizer.php
-
-		-
-			message: "#^Variable method call on Composer\\\\Package\\\\PackageInterface\\.$#"
-			count: 1
-			path: src/Service/PackageSynchronizer/ComposerPackageSynchronizer.php
-
-		-
 			message: "#^Method Sentry\\\\State\\\\Scope\\:\\:setUser\\(\\) invoked with 2 parameters, 1 required\\.$#"
 			count: 1
 			path: src/Service/Symfony/SentryRequestListener.php
