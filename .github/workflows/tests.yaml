@@ -31,6 +31,9 @@ jobs:
         php:
           - "7.4"
           - "8.0"
+          - "8.4"
+          - "8.5"
+          - "8.6"
         postgresql:
           - "17"
         include:
@@ -42,6 +45,12 @@ jobs:
             php-version: "7.4.33"
           - php: "8.0"
             php-version: "8.0.30"
+          - php: "8.4"
+            php-version: "8.4"
+          - php: "8.5"
+            php-version: "8.5"
+          - php: "8.6"
+            php-version: "8.6"
           - postgresql: "17"
             postgresql-version: "17"
 
@@ -57,7 +66,7 @@ jobs:
         run: |
           wget https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions --quiet -O /usr/local/bin/install-php-extensions
           chmod +x /usr/local/bin/install-php-extensions
-          install-php-extensions intl pdo_pgsql zip
+          install-php-extensions intl mbstring pdo_pgsql zip
 
       - name: "Install composer"
         run: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=2.6.6
