@@ -32,6 +32,7 @@
         "composer/composer": "^1.10.22",
         "composer/semver": "^1.5",
         "doctrine/annotations": "^1.14",
+        "doctrine/dbal": "^3.6",
         "doctrine/doctrine-bundle": "^2.1",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.7",
@@ -84,8 +85,8 @@
         "symfony/var-dumper": "5.4.*",
         "symfony/var-exporter": "5.4.*",
         "symfony/yaml": "5.4.*",
-        "twig/extra-bundle": "^2.12 || ^3.0",
-        "twig/twig": "^2.12 || ^3.0"
+        "twig/extra-bundle": "^3.9",
+        "twig/twig": "^3.9"
     },
     "replace": {
         "paragonie/random_compat": "2.*",

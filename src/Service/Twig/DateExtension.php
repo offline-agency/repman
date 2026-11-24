@@ -18,6 +18,7 @@ use Symfony\Component\Intl\Timezones;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
+use Twig\Extension\CoreExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 
@@ -86,13 +87,13 @@ class DateExtension extends AbstractExtension
      */
     public function diff(Environment $env, $date, $now = null): string
     {
-        $date = twig_date_converter($env, $date);
+        $date = $env->getExtension(CoreExtension::class)->convertDate($date);
 
         $now = $now === null
             ? new \DateTimeImmutable(
-                twig_date_converter($env, null, $this->timezone)->format('Y-m-d H:i:s')
+                $env->getExtension(CoreExtension::class)->convertDate(null, $this->timezone)->format('Y-m-d H:i:s')
             )
-            : twig_date_converter($env, $now);
+            : $env->getExtension(CoreExtension::class)->convertDate($now);
 
         // Get the difference between the two DateTime objects.
         $diff = $date->diff($now);
@@ -119,9 +120,9 @@ class DateExtension extends AbstractExtension
     public function dateTime(Environment $env, $date, ?string $sourceTimezone = null): string
     {
         $date = $sourceTimezone === null
-            ? twig_date_converter($env, $date, $this->timezone)
+            ? $env->getExtension(CoreExtension::class)->convertDate($date, $this->timezone)
             : (new \DateTimeImmutable(
-                twig_date_converter($env, $date)->format('Y-m-d H:i:s'),
+                $env->getExtension(CoreExtension::class)->convertDate($date)->format('Y-m-d H:i:s'),
                 new \DateTimeZone($sourceTimezone)
             ))->setTimezone(new \DateTimeZone($this->timezone));
 
@@ -143,9 +144,9 @@ class DateExtension extends AbstractExtension
     {
         $now = $now === null
             ? new \DateTimeImmutable(
-                twig_date_converter($env, null, $this->timezone)->format('Y-m-d H:i:s')
+                $env->getExtension(CoreExtension::class)->convertDate(null, $this->timezone)->format('Y-m-d H:i:s')
             )
-            : twig_date_converter($env, $now);
+            : $env->getExtension(CoreExtension::class)->convertDate($now);
 
         return Timezones::getGmtOffset($this->timezone, $now->getTimestamp());
     }
