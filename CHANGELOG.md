@@ -10,6 +10,15 @@ On next release:
 - [ ] update src/Kernel.php (REPMAN_VERSION)
 - [ ] update docker-compose.yml (image tags)
 
+## [Unreleased]
+### Changed
+- Test and CI matrix now cover PHP 8.4, 8.5 and 8.6 (`composer.json` already allowed them)
+
+### Fixed
+- Tests: serialized package fixtures no longer end with a newline (`unserialize()` warns on trailing data since PHP 8.3)
+- Tests: `ComposerPackageSynchronizerTest::testSynchronizeError` accepts the PHP 8.6 error message, which no longer contains the path
+- Tests: PHP diagnostics are no longer printed into the responses captured by functional tests
+
 ## [1.3.4] - 2021-06-25
 ### Security
 - Upgrade flysystem to 1.1.4 - fix [CVE-2021-32708](https://github.com/thephpleague/flysystem/security/advisories/GHSA-9f46-5r25-5wfm)
