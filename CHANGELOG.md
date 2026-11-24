@@ -11,13 +11,35 @@ On next release:
 - [ ] update docker-compose.yml (image tags)
 
 ## [Unreleased]
+
+## [2.0.0]
+### Breaking changes
+- PHP 8.4 is now the minimum version (PHP 7.4 to 8.3 are no longer supported); PHP 8.4, 8.5 and 8.6 are supported and tested
+- `sensio/framework-extra-bundle` (abandoned) was removed: request converters are now argument value resolvers, `@IsGranted` became `denyAccessUnlessGranted()` and `@Cache(public=false)` became `setPrivate()` (see [UPGRADE.md](UPGRADE.md))
+- `twig/twig` 3.9 or later is required (the `spaceless` filter was replaced by `compact_html`)
+- `composer/composer` 2.x (with `composer/semver` 3.x) and `league/commonmark` 2.x replace the 1.x lines, which have published security advisories
+
 ### Changed
-- Test and CI matrix now cover PHP 8.4, 8.5 and 8.6 (`composer.json` already allowed them)
+- Supported PHP versions: 8.4, 8.5 and 8.6; Symfony stays on 5.4
+- `composer.lock` is resolved on PHP 8.4.0 and dependencies are updated within their existing constraints (`buddy-works/buddy-works-php-api` ^1.4, `doctrine/annotations`, `doctrine/dbal` ^3.6 and `twig/twig` ^3.9 are now required explicitly)
+- Tests: Prophecy (`phpspec/prophecy-phpunit`) was replaced by PHPUnit mocks
+- The `Dockerfile`, the Buddy pipelines and the Ansible `php` role use PHP 8.4
+- Documentation is split by major version in `docs/` (current: [docs/v2](docs/v2/index.md)) and the README has a compatibility table
+- `Kernel::REPMAN_VERSION` is `2.0.0`
+
+### Added
+- GitHub Actions: tests on PHP 8.4, 8.5 and 8.6, `composer validate --strict`, PHP-CS-Fixer (on PHP 8.4) and PHPStan (level `max`), and a `Release` workflow that tags and publishes the GitHub Release when the `CHANGELOG.md` has a new version
+- `compact_html` Twig filter
 
 ### Fixed
 - Tests: serialized package fixtures no longer end with a newline (`unserialize()` warns on trailing data since PHP 8.3)
 - Tests: `ComposerPackageSynchronizerTest::testSynchronizeError` accepts the PHP 8.6 error message, which no longer contains the path
 - Tests: PHP diagnostics are no longer printed into the responses captured by functional tests
+- A GitLab rate limit (HTTP 429) is reported as `Too Many Requests` again
+- PHP-CS-Fixer 3.95 and PHPStan 1.12 pass: deprecated Twig and DBAL APIs were replaced and generic types were added to the docblocks
+
+### Security
+- Dependencies that still have published security advisories and could not be replaced without rewriting the storage layer or the API client: `league/flysystem` 1.x (with `league/flysystem-cached-adapter` and `league/flysystem-bundle` 1.x, which also keep Symfony on 5.4) and `guzzlehttp/guzzle` 6.x (required by `buddy-works/buddy-works-php-api`)
 
 ## [1.3.4] - 2021-06-25
 ### Security
